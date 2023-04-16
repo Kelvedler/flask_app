@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import request
 from sqlalchemy import select, exc
 
-from common import conv
+from common import time
 from common.api import error_response as err_resp
 from common.constants import PERSON_ACCESS, PERSON_REFRESH, REFRESH_COOKIE_NAME
 from config import config
@@ -24,7 +24,7 @@ def encode(identifier, type_):
     payload = {
         'id': identifier,
         'type': type_,
-        'ts': conv.get_now_ts()
+        'ts': time.get_now_ts()
     }
     token = jwt.encode(payload, config.SECRET_KEY, JWT_ALGORITHM)
     return token
@@ -37,14 +37,14 @@ def decode(encoded):
         return False
 
 
-def jwt_(type_, get_token, required=True):
+def jwt_(type_, get_token, required=True, exclude_methods=None):
     def decorator(function):
         def wrapper(*args, **kwargs):
             try:
                 decoded = decode(get_token())
                 assert decoded
                 assert all(key in decoded for key in JWT_PAYLOAD_KEYS)
-                assert decoded['ts'] > conv.to_ts(conv.get_now() - EXPIRATION_FOR_TYPE[type_])
+                assert decoded['ts'] > time.to_ts(time.get_now() - EXPIRATION_FOR_TYPE[type_])
                 assert decoded['type'] == type_
                 with engine.connect() as conn:
                     person = conn.execute(select(person_table).where(
@@ -52,7 +52,7 @@ def jwt_(type_, get_token, required=True):
                         person_table.c.password_updated_at < datetime.utcfromtimestamp(decoded['ts'])
                     )).one()
             except (AssertionError, exc.NoResultFound, exc.DataError):
-                if required:
+                if not required if exclude_methods and request.method in exclude_methods else required:
                     return err_resp.Unauthorized()
                 else:
                     request.person = None
@@ -64,7 +64,7 @@ def jwt_(type_, get_token, required=True):
     return decorator
 
 
-def jwt_from_headers(type_, required=True):
+def jwt_from_headers(type_, required=True, exclude_methods=None):
     def get_from_headers():
         bearer = request.headers.environ.get('HTTP_AUTHORIZATION')
         assert bearer
@@ -72,17 +72,21 @@ def jwt_from_headers(type_, required=True):
         assert bearer_pattern
         return bearer_pattern.group(1)
 
-    return jwt_(type_, get_from_headers, required)
+    return jwt_(type_, get_from_headers, required, exclude_methods)
 
 
-def jwt_from_cookies(type_, required=True):
+def jwt_from_cookies(type_, required=True, exclude_methods=None):
     def get_from_cookies():
         token = request.cookies.get(REFRESH_COOKIE_NAME)
         assert token
         return token
 
-    return jwt_(type_, get_from_cookies, required)
+    return jwt_(type_, get_from_cookies, required, exclude_methods)
 
 
-jwt_access_required = jwt_from_headers(PERSON_ACCESS)
-jwt_refresh_required = jwt_from_cookies(PERSON_REFRESH)
+def jwt_access_required(exclude_methods=None):
+    return jwt_from_headers(PERSON_ACCESS, True, exclude_methods)
+
+
+def jwt_refresh_required(exclude_methods=None):
+    return jwt_from_cookies(PERSON_REFRESH, True, exclude_methods)

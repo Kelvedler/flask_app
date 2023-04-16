@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from marshmallow import Schema, fields, validate, validates, post_load, ValidationError
 from sqlalchemy import update
 
-from common import conv
+from common import time
 from common.api import convert_from_validation, JsonResponse
 from common.jwt_ import jwt_access_required
 from common.regex import PASSWORD as RE_PASSWORD
@@ -33,14 +33,14 @@ class PasswordSchema(Schema):
 
 
 @me.route('', methods=['GET'])
-@jwt_access_required
-def get():
+@jwt_access_required()
+def me_view():
     return JsonResponse(PersonSchema().dumps(request.person), status=200)
 
 
 @password.route('', methods=['POST'])
-@jwt_access_required
-def post():
+@jwt_access_required()
+def password_view():
     person = request.person
     try:
         schema = PasswordSchema()
@@ -51,6 +51,6 @@ def post():
     hashed_password = hash_password(data['new_password'])
     with engine.connect() as conn:
         conn.execute(update(person_table).where(person_table.c.id == person['id']).values(
-            password=hashed_password, password_updated_at=conv.get_now()))
+            password=hashed_password, password_updated_at=time.get_now()))
         conn.commit()
     return JsonResponse(PersonSchema().dumps(person), status=200)

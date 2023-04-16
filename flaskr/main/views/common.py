@@ -1,6 +1,6 @@
 import json
 
-from common import conv, constants
+from common import time, constants
 from common.api import JsonResponse
 from config import config
 from main.models.person import encode_access_token, encode_refresh_token
@@ -17,6 +17,6 @@ def person_tokens_response(person_id: str, status: int):
     response.set_cookie(
         key=constants.REFRESH_COOKIE_NAME,
         value=encode_refresh_token(person_id),
-        expires=conv.to_ts(conv.get_now() + config.JWT_REFRESH_EXPIRATION_TIMEDELTA)
+        expires=time.to_ts(time.get_now() + config.JWT_REFRESH_EXPIRATION_TIMEDELTA)
     )
     return response

@@ -12,7 +12,7 @@ sign_up = Blueprint('sign-up', __name__, url_prefix='sign-up')
 
 
 @sign_up.route('', methods=('POST',))
-def post():
+def sign_up_view():
     try:
         data = InsertPersonSchema().load(request.json)
     except ValidationError as err:

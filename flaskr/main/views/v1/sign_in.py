@@ -11,7 +11,7 @@ sign_in = Blueprint('sign-in', __name__, url_prefix='sign-in')
 
 
 @sign_in.route('', methods=['POST'])
-def post():
+def sign_in_view():
     try:
         data = PersonSchema(only=['name', 'password']).load(request.json)
     except ValidationError as err:

@@ -7,6 +7,6 @@ refresh = Blueprint('refresh', __name__, url_prefix='refresh')
 
 
 @refresh.route('', methods=['POST'])
-@jwt_refresh_required
-def post():
+@jwt_refresh_required()
+def refresh_view():
     return person_access_token_response(str(request.person['id']), 200)

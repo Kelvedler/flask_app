@@ -1,18 +1,17 @@
 from argon2 import PasswordHasher, exceptions
-from datetime import timezone
-from marshmallow import Schema, ValidationError, fields, validate, validates, pre_dump
+from marshmallow import ValidationError, fields, validate, validates
 from sqlalchemy import Table, Column, String, select, TIMESTAMP
 from sqlalchemy.sql import func
 
 from common.constants import PERSON_ACCESS, PERSON_REFRESH
 from common.regex import PASSWORD as RE_PASSWORD
 from db import engine
-from main.models.base import metadata_obj, base_columns
+from main.models.base import metadata_obj, get_base_columns, BaseSchema
 
 person_table = Table(
     'person',
     metadata_obj,
-    *base_columns,
+    *get_base_columns(),
     Column('name', String(50), nullable=False, unique=True),
     Column('email', String(50), nullable=False, unique=True),
     Column('password', String(256), nullable=False),
@@ -20,19 +19,10 @@ person_table = Table(
 )
 
 
-class PersonSchema(Schema):
-    id = fields.UUID(dump_only=True)
-    created_at = fields.Integer(dump_only=True)
-    updated_at = fields.Integer(dump_only=True)
+class PersonSchema(BaseSchema):
     name = fields.String(validate=validate.Length(min=3, max=50), required=True)
     email = fields.Email(validate=validate.Length(max=50), required=True)
     password = fields.String(validate=validate.Regexp(RE_PASSWORD), required=True, load_only=True)
-
-    @pre_dump
-    def to_timestamp(self, data, **kwargs):
-        data['created_at'] = data['created_at'].timestamp()
-        data['updated_at'] = data['updated_at'].timestamp()
-        return data
 
 
 class InsertPersonSchema(PersonSchema):
