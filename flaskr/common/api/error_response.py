@@ -1,6 +1,6 @@
 import json
 import re
-from flask import Response
+from common.api import JsonResponse
 from marshmallow import ValidationError
 
 from common import constants as con, regex
@@ -8,20 +8,20 @@ from common import constants as con, regex
 SCHEMA_ERROR = '_schema'
 
 
-class BaseResponse(Response):
+class BaseResponse(JsonResponse):
     status_code = 500
     _reason_phrase = 'internal'
 
     def __init__(self, *errors, **kwargs):
         self._errors = errors
-        super().__init__(self.response_dict, status=self.status_code, mimetype='application/json', **kwargs)
+        super().__init__(self.response_dict, status=self.status_code, **kwargs)
 
     @property
     def response_dict(self):
         return json.dumps({'errors': self._errors if self._errors else [self._reason_phrase]})
 
     def as_error_handler(self, err):
-        return self.response_dict, self.status_code
+        return self
 
 
 class BadRequest(BaseResponse):

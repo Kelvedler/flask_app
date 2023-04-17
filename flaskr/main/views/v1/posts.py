@@ -17,7 +17,9 @@ posts.register_blueprint(single)
 
 def get_posts():
     with engine.connect() as conn:
-        posts = conn.execute(select(*label_columns(post_table), *label_columns(person_table)).where(post_table.c.person == person_table.c.id)).all()
+        posts = conn.execute(select(
+            *label_columns(post_table), *label_columns(person_table)
+        ).where(post_table.c.person == person_table.c.id)).all()
     return JsonResponse(PostSchemaFromFlat(many=True).dumps([post._asdict() for post in posts]), status=200)
 
 
@@ -34,6 +36,17 @@ def create_post():
         conn.commit()
     post['person'] = person
     return JsonResponse(post_schema.dumps(post), status=201)
+
+
+def get_post(post_id):
+    try:
+        with engine.connect() as conn:
+            post = conn.execute(select(
+                *label_columns(post_table), *label_columns(person_table)
+            ).where(post_table.c.id == post_id, post_table.c.person == person_table.c.id)).one()
+    except (exc.NoResultFound, exc.DataError):
+        return err_resp.NotFound('post__not_found')
+    return JsonResponse(PostSchemaFromFlat().dumps(post._asdict()), status=200)
 
 
 def put_post(post_id):
@@ -67,9 +80,12 @@ def multiple_view():
         return create_post()
 
 
-@single.route('', methods=['PUT', 'DELETE'])
-@jwt_access_required()
+@single.route('', methods=['GET', 'PUT', 'DELETE'])
+@jwt_access_required(exclude_methods=['GET'])
 def single_view(post_id):
+    if request.method == 'GET':
+        return get_post(post_id)
+
     try:
         with engine.connect() as conn:
             post = conn.execute(select(post_table).where(post_table.c.id == post_id)).one()

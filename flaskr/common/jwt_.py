@@ -8,7 +8,7 @@ from common import time
 from common.api import error_response as err_resp
 from common.constants import PERSON_ACCESS, PERSON_REFRESH, REFRESH_COOKIE_NAME
 from config import config
-from db import engine
+from flaskr.db import engine
 from main.models.person import person_table
 
 JWT_ALGORITHM = 'HS256'

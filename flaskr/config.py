@@ -6,12 +6,12 @@ load_dotenv()
 
 
 class Config:
+    CONSOLE_LOG_LEVEL = os.getenv('LOG_LEVEL', default='INFO')
     DEBUG = False
     DATABASE_URI = os.getenv('DATABASE_URI')
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
     SECRET_KEY = 'mZq4t7w!z%C*F-JaNdRgUkXn2r5u8x/A'
     JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(days=30)
     JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=364)
