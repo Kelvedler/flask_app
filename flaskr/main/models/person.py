@@ -3,9 +3,9 @@ from marshmallow import ValidationError, fields, validate, validates
 from sqlalchemy import Table, Column, String, select, TIMESTAMP
 from sqlalchemy.sql import func
 
-from common.constants import PERSON_ACCESS, PERSON_REFRESH
-from common.regex import PASSWORD as RE_PASSWORD
-from db import engine
+from app_core.constants import PERSON_ACCESS, PERSON_REFRESH
+from app_core.regex import PASSWORD as RE_PASSWORD
+from app_core.db import engine
 from main.models.base import metadata_obj, get_base_columns, BaseSchema
 
 person_table = Table(
@@ -54,10 +54,10 @@ def is_password_valid(raw_password, hashed_password):
 
 
 def encode_access_token(person_id):
-    from common.jwt_ import encode
+    from app_core.jwt_ import encode
     return encode(person_id, PERSON_ACCESS)
 
 
 def encode_refresh_token(person_id):
-    from common.jwt_ import encode
+    from app_core.jwt_ import encode
     return encode(person_id, PERSON_REFRESH)

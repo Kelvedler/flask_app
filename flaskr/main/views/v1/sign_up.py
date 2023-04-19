@@ -3,8 +3,8 @@ from marshmallow import ValidationError
 from sqlalchemy import insert
 from sqlalchemy.sql.expression import literal_column
 
-from common.api import convert_from_validation
-from db import engine
+from app_core.api import convert_from_validation
+from app_core.db import engine
 from main.models.person import person_table, InsertPersonSchema, hash_password
 from main.views.common import person_tokens_response
 

@@ -6,9 +6,14 @@ load_dotenv()
 
 
 class Config:
-    CONSOLE_LOG_LEVEL = os.getenv('LOG_LEVEL', default='INFO')
+    CONSOLE_LOG_LEVEL = os.getenv('CONSOLE_LOG_LEVEL', default='INFO')
+    SYSTEM_LOG_LEVEL = os.getenv('SYSTEM_LOG_LEVEL', default='INFO')
     DEBUG = False
     DATABASE_URI = os.getenv('DATABASE_URI')
+    ELASTICSEARCH = {
+        'URI': os.getenv('ELASTICSEARCH_URI'),
+        'PASSWORD': os.getenv('ELASTICSEARCH_PASSWORD')
+    }
 
 
 class DevelopmentConfig(Config):

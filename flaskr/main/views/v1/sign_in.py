@@ -1,11 +1,11 @@
 from flask import Blueprint, request
 from marshmallow import ValidationError
-
-from common.api import convert_from_validation, BadRequest
-from db import engine
-from main.models.person import PersonSchema, person_table, is_password_valid
 from sqlalchemy import select, exc
-from ..common import person_tokens_response
+
+from app_core.api import convert_from_validation, BadRequest
+from app_core.db import engine
+from main.models.person import PersonSchema, person_table, is_password_valid
+from main.views.common import person_tokens_response
 
 sign_in = Blueprint('sign-in', __name__, url_prefix='sign-in')
 

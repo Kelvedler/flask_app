@@ -1,9 +1,9 @@
 import json
 import re
-from common.api import JsonResponse
+from app_core.api import JsonResponse
 from marshmallow import ValidationError
 
-from common import constants as con, regex
+from app_core import constants as con, regex
 
 SCHEMA_ERROR = '_schema'
 

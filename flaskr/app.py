@@ -1,9 +1,9 @@
 from logging.config import dictConfig
 from flask import Flask
 
-from config import config
-from db import engine
-from common.api import BadRequest, ServerInternalError
+from app_core.api import BadRequest, ServerInternalError
+from app_core.config import config
+from app_core.db import engine
 from main.views import api as main_api
 
 
@@ -43,8 +43,14 @@ if __name__ == '__main__':
             }
         },
         'root': {
-            'level': 'DEBUG',
             'handlers': ['console', 'general_file', 'error_file']
+        },
+        'loggers': {
+            'main': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            }
         }
     })
 

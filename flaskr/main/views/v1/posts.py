@@ -2,10 +2,9 @@ from flask import Blueprint, request
 from marshmallow import ValidationError
 from sqlalchemy import insert, select, exc, update, delete
 
-from common.api import convert_from_validation, JsonResponse, error_response as err_resp
-from common.db import label_columns
-from common.jwt_ import jwt_access_required
-from db import engine
+from app_core.api import convert_from_validation, JsonResponse, error_response as err_resp
+from app_core.db import engine, label_columns
+from app_core.jwt_ import jwt_access_required
 from main.models.post import post_table, PostSchema, PostSchemaFromFlat
 from main.models.person import person_table
 

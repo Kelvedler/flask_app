@@ -1,8 +1,8 @@
 import json
 
-from common import time, constants
-from common.api import JsonResponse
-from config import config
+from app_core import time, constants
+from app_core.api import JsonResponse
+from app_core.config import config
 from main.models.person import encode_access_token, encode_refresh_token
 
 
