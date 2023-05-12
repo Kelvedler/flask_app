@@ -26,4 +26,4 @@ class UpdateQueue:
         self.redis_client.srem(self.key, *[str(id_) for id_ in object_id])
 
     def get_objects(self):
-        return [element.decode("utf-8") for element in self.redis_client.smembers(self.key)]
+        return [element.decode('utf-8') for element in self.redis_client.smembers(self.key)]

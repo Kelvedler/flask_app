@@ -1,3 +1,4 @@
+import logging
 from celery import shared_task
 from celery.schedules import crontab
 from elasticsearch.helpers import bulk
@@ -8,9 +9,13 @@ from app_core.elastic import client
 from main.models.post import post_table, post_update_queue, POST_ELASTIC_INDEX, post_to_elastic_object
 from main.models.person import person_table
 
+logger = logging.getLogger(__name__)
+
 
 def update_post_index():
     modified_posts = post_update_queue.get_objects()
+    logger.info(f'Updating post index for: {modified_posts}')
+
     posts_memo = modified_posts.copy()
     with engine.connect() as conn:
         posts = conn.execute(select(
@@ -26,10 +31,12 @@ def update_post_index():
             '_op_type': 'delete'
         })
     success, errs = bulk(client, actions, index=POST_ELASTIC_INDEX)
-    if success == len(modified_posts):
+    if success == len(modified_posts) and not errs:
+        logger.info('Successfully updated post index')
         post_update_queue.remove_objects(*modified_posts)
     else:
-        print(errs)  # TODO fix exception handling
+        logger.error(f'Failed to update posts: {modified_posts}')
+        logger.error(errs)
 
 
 @shared_task()
