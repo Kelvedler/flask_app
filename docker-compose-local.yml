@@ -10,6 +10,12 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pg_data_local:/var/lib/postgresql/data/
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
   elastic_ca_certs:
     image: elasticsearch:8.7.0
     volumes:
@@ -88,5 +94,6 @@ services:
       - "127.0.0.1:9200:9200"
 volumes:
   pg_data_local:
+  redis_data:
   elasticsearch_data:
   certs:

@@ -1,6 +1,7 @@
 from marshmallow import fields, validate, pre_dump
-from sqlalchemy import Table, Column, String, UUID, ForeignKey
+from sqlalchemy import Table, Column, String, UUID, ForeignKey, Row
 
+from app_core.elastic import UpdateQueue
 from main.models.base import metadata_obj, get_base_columns, BaseSchema
 
 post_table = Table(
@@ -32,6 +33,24 @@ class PostSchemaFromFlat(PostSchema):
                 person_object[key[len(person_prefix):]] = value
         unflattened_data['person'] = person_object
         return unflattened_data
+
+
+POST_ELASTIC_INDEX = 'posts'
+post_update_queue = UpdateQueue('post')
+
+
+def post_to_elastic_object(post: Row):
+    post_dict = post._asdict()
+    post_title = post_dict['post__title']
+    post_id = post_dict['post__id']
+    return {
+        '_id': post_id,
+        'title': post_title,
+        'title_suggest': post_title.split(),
+        'text': post_dict['post__text'],
+        'person_id': post_dict['person__id'],
+        'person_name': post_dict['person__name']
+    }
 
 
 post_comment_table = Table(

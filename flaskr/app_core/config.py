@@ -14,6 +14,13 @@ class Config:
         'URI': os.getenv('ELASTICSEARCH_URI'),
         'PASSWORD': os.getenv('ELASTICSEARCH_PASSWORD')
     }
+    REDIS_HOST = os.getenv('REDIS_HOST')
+    REDIS_PORT = os.getenv('REDIS_PORT')
+    CELERY = {
+        'broker_url': f'redis://{REDIS_HOST}:{REDIS_PORT}',
+        'result_backend': f'redis://{REDIS_HOST}:{REDIS_PORT}',
+        'task_ignore_result': True
+    }
 
 
 class DevelopmentConfig(Config):

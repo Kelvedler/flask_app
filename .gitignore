@@ -7,3 +7,4 @@ venv
 flaskr/.env
 flaskr/logs/
 flaskr/ca.crt
+flaskr/celerybeat-schedule.*
