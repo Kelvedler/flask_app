@@ -25,8 +25,8 @@ class PostSchemaFromFlat(PostSchema):
     def from_flat(self, data, **kwargs):
         unflattened_data = {}
         person_object = {}
+        post_prefix, person_prefix = 'post__', 'person__'
         for key, value in data.items():
-            post_prefix, person_prefix = 'post__', 'person__'
             if key.startswith(post_prefix):
                 unflattened_data[key[len(post_prefix):]] = value
             elif key.startswith(person_prefix):
@@ -61,3 +61,23 @@ post_comment_table = Table(
     Column('person', UUID, ForeignKey('person.id'), nullable=False),
     Column('text', String(250), nullable=False),
 )
+
+
+class PostCommentSchema(BaseSchema):
+    person = fields.Nested('PersonSchema', dump_only=True)
+    text = fields.String(validate=validate.Length(min=5, max=250), required=True)
+
+
+class PostCommentSchemaFromFlat(PostCommentSchema):
+    @pre_dump
+    def from_flat(self, data, **kwargs):
+        unflattened_data = {}
+        person_object = {}
+        post_comment_prefix, person_prefix = 'post_comment__', 'person__'
+        for key, value in data.items():
+            if key.startswith(post_comment_prefix):
+                unflattened_data[key[len(post_comment_prefix):]] = value
+            elif key.startswith(person_prefix):
+                person_object[key[len(person_prefix):]] = value
+        unflattened_data['person'] = person_object
+        return unflattened_data

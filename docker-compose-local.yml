@@ -92,8 +92,23 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - "127.0.0.1:9200:9200"
+  rabbitmq:
+    image: rabbitmq:3.11.16-management-alpine
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - rabbitmq_data_local:/var/lib/rabbitmq/
+        - rabbitmq_log_local:/var/log/rabbitmq
+    networks:
+        - rabbitmq_net
 volumes:
   pg_data_local:
   redis_data:
   elasticsearch_data:
   certs:
+  rabbitmq_data_local:
+  rabbitmq_log_local:
+networks:
+  rabbitmq_net:
+    driver: bridge

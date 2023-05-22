@@ -4,7 +4,7 @@ __pycache__/
 
 .idea
 venv
-flaskr/.env
-flaskr/logs/
-flaskr/ca.crt
-flaskr/celerybeat-schedule.*
+src/.env
+src/logs/
+src/ca.crt
+src/celerybeat-schedule.*

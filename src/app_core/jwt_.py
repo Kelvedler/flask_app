@@ -37,20 +37,34 @@ def decode(encoded):
         return False
 
 
-def jwt_(type_, get_token, required=True, exclude_methods=None):
+def jwt_get_person(type_, get_token):
+    decoded = decode(get_token())
+    assert decoded
+    assert all(key in decoded for key in JWT_PAYLOAD_KEYS)
+    assert decoded['ts'] > time.to_ts(time.get_now() - EXPIRATION_FOR_TYPE[type_])
+    assert decoded['type'] == type_
+    with engine.connect() as conn:
+        person = conn.execute(select(person_table).where(
+            person_table.c.id == decoded['id'],
+            person_table.c.password_updated_at < datetime.utcfromtimestamp(decoded['ts'])
+        )).one()
+    return person._asdict()
+
+
+def jwt_function(type_, get_token):
+    try:
+        person = jwt_get_person(type_, get_token)
+    except (AssertionError, exc.NoResultFound, exc.DataError):
+        return None, err_resp.Unauthorized().response_dict
+    else:
+        return person, None
+
+
+def jwt_decorator(type_, get_token, required=True, exclude_methods=None):
     def decorator(function):
         def wrapper(*args, **kwargs):
             try:
-                decoded = decode(get_token())
-                assert decoded
-                assert all(key in decoded for key in JWT_PAYLOAD_KEYS)
-                assert decoded['ts'] > time.to_ts(time.get_now() - EXPIRATION_FOR_TYPE[type_])
-                assert decoded['type'] == type_
-                with engine.connect() as conn:
-                    person = conn.execute(select(person_table).where(
-                        person_table.c.id == decoded['id'],
-                        person_table.c.password_updated_at < datetime.utcfromtimestamp(decoded['ts'])
-                    )).one()
+                person = jwt_get_person(type_, get_token)
             except (AssertionError, exc.NoResultFound, exc.DataError):
                 if not required if exclude_methods and request.method in exclude_methods else required:
                     return err_resp.Unauthorized()
@@ -58,7 +72,7 @@ def jwt_(type_, get_token, required=True, exclude_methods=None):
                     request.person = None
                     return function(*args, **kwargs)
             else:
-                request.person = person._asdict()
+                request.person = person
                 return function(*args, **kwargs)
         return wrapper
     return decorator
@@ -72,7 +86,7 @@ def jwt_from_headers(type_, required=True, exclude_methods=None):
         assert bearer_pattern
         return bearer_pattern.group(1)
 
-    return jwt_(type_, get_from_headers, required, exclude_methods)
+    return jwt_decorator(type_, get_from_headers, required, exclude_methods)
 
 
 def jwt_from_cookies(type_, required=True, exclude_methods=None):
@@ -81,12 +95,20 @@ def jwt_from_cookies(type_, required=True, exclude_methods=None):
         assert token
         return token
 
-    return jwt_(type_, get_from_cookies, required, exclude_methods)
+    return jwt_decorator(type_, get_from_cookies, required, exclude_methods)
 
 
+# view decorators
 def jwt_access_required(exclude_methods=None):
     return jwt_from_headers(PERSON_ACCESS, True, exclude_methods)
 
 
 def jwt_refresh_required(exclude_methods=None):
     return jwt_from_cookies(PERSON_REFRESH, True, exclude_methods)
+
+
+# functions
+def jwt_access_required_from_value(value):
+    def get_from_value():
+        return value
+    return jwt_function(PERSON_ACCESS, get_from_value)

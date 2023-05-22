@@ -4,9 +4,9 @@ from sqlalchemy import update
 
 from app_core import time
 from app_core.api import convert_from_validation, JsonResponse
+from app_core.db import engine
 from app_core.jwt_ import jwt_access_required
 from app_core.regex import PASSWORD as RE_PASSWORD
-from app_core.db import engine
 from main.models.person import PersonSchema, is_password_valid, person_table, hash_password
 
 me = Blueprint('me', __name__, url_prefix='me')
