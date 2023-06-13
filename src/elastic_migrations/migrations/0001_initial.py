@@ -5,6 +5,7 @@ from app_core.db import engine, label_columns
 from app_core.elastic import client
 from main.models.post import post_table
 from main.models.person import person_table
+from elastic_migrations.base import Migration
 
 POSTS = 'posts'
 
@@ -42,15 +43,16 @@ def forwards():
             'person_name': post_dict['person__name']
         })
     success, errs = bulk(client, actions, index=POSTS)
-    print(f'success: {success}')
-    print('errors:')
-    for err in errs:
-        print(f'\t{err}')
+    if errs:
+        raise Exception('failed to apply')
 
 
 def reverse():
     client.indices.delete(index=POSTS)
 
 
-if __name__ == '__main__':
-    forwards()
+migration = Migration(
+    depends_on=None,
+    forwards=forwards,
+    reverse=reverse
+)

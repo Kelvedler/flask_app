@@ -69,8 +69,13 @@ class Config:
                 'handlers': ['console', 'general_file', 'error_file'],
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
+            },
+            'web_sockets': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': SYSTEM_LOG_LEVEL,
+                'propagate': False
             }
-        }
+        },
     }
 
 

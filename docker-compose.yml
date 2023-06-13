@@ -1,0 +1,85 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONPATH=/app
+      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/%2F
+      - CONFIG=development
+      - CONSOLE_LOG_LEVEL=DEBUG
+      - SYSTEM_LOG_LEVEL=DEBUG
+      - DATABASE_URI=postgresql://local_user:local_pass@database:5432/local_db
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - ELASTICSEARCH_PASSWORD=local_pass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WEBSOCKETS_HOST=0.0.0.0
+      - WEBSOCKETS_PORT=8001
+      - SECRET_KEY=mZq4t7w!z%C*F-JaNdRgUkXn2r5u8x/A
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      - database
+      - redis
+      - elasticsearch
+    networks:
+      - web_net
+  database:
+    image: postgres:15.2-alpine
+    environment:
+      - POSTGRES_DB=local_db
+      - POSTGRES_USER=local_user
+      - POSTGRES_PASSWORD=local_pass
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data_local:/var/lib/postgresql/data/
+    networks:
+      - web_net
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - web_net
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    environment:
+      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD=local_pass
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "127.0.0.1:9200:9200"
+    networks:
+      - web_net
+  rabbitmq:
+    image: rabbitmq:3.11.16-management-alpine
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq_data_local:/var/lib/rabbitmq/
+      - rabbitmq_log_local:/var/log/rabbitmq
+    networks:
+      - web_net
+volumes:
+  pg_data_local:
+  redis_data:
+  elasticsearch_data:
+  rabbitmq_data_local:
+  rabbitmq_log_local:
+networks:
+  web_net:
+    driver: bridge

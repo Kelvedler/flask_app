@@ -6,5 +6,5 @@ __pycache__/
 venv
 src/.env
 src/logs/
-src/ca.crt
 src/celerybeat-schedule.*
+src/app_utils.egg-info
