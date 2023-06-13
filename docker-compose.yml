@@ -4,20 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - PYTHONPATH=/app
-      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/%2F
-      - CONFIG=development
-      - CONSOLE_LOG_LEVEL=DEBUG
-      - SYSTEM_LOG_LEVEL=DEBUG
-      - DATABASE_URI=postgresql://local_user:local_pass@database:5432/local_db
-      - ELASTICSEARCH_URI=http://elasticsearch:9200
-      - ELASTICSEARCH_PASSWORD=local_pass
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - WEBSOCKETS_HOST=0.0.0.0
-      - WEBSOCKETS_PORT=8001
-      - SECRET_KEY=mZq4t7w!z%C*F-JaNdRgUkXn2r5u8x/A
     ports:
       - "127.0.0.1:8000:8000"
       - "127.0.0.1:8001:8001"
