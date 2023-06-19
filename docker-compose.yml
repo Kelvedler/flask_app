@@ -14,6 +14,8 @@ services:
       - web_net
   nginx:
     image: nginx:1.25.1-alpine
+    command:
+      - bash -c "adduser www-data"
     ports:
       - "80:80"
     depends_on:
