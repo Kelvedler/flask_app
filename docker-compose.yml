@@ -15,7 +15,7 @@ services:
   nginx:
     image: nginx:1.25.1-alpine
     command:
-      - bash -c "adduser www-data"
+      - sh -c "adduser www-data"
     ports:
       - "80:80"
     depends_on:
