@@ -19,4 +19,6 @@ RUN pip install --editable .
 RUN chmod +x docker-entrypoint.sh \
 update.sh server-gunicorn.sh celery-worker.sh
 
+EXPOSE 8000 8001
+
 ENTRYPOINT ./docker-entrypoint.sh
