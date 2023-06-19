@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - "8000-8001:8000-8001"
     depends_on:
       - database
       - redis
