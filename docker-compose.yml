@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "217.160.151.99:8000-8001:8000-8001"
+      - "8000-8001:8000-8001"
     depends_on:
       - database
       - redis
