@@ -80,16 +80,6 @@ class Config:
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
             },
-            'gunicorn.access': {
-                'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
-                'propagate': False
-            },
-            'gunicorn.error': {
-                'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
-                'propagate': False
-            },
         },
     }
 
@@ -101,6 +91,46 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
+    LOGGING_DICT = Config.LOGGING_DICT
+    LOGGING_DICT['formatters']['gunicorn'] = {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %({X-Forwarded-For}i)s %(message)s'
+    }
+    LOGGING_DICT['handlers'].update({
+        'gunicorn_console': {
+            'level': Config.CONSOLE_LOG_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'gunicorn'
+        },
+        'gunicorn_file_general': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'gunicorn',
+            'filename': f'{BASE_DIR}/logs/general.log',
+            'maxBytes': 1000000,
+            'backupCount': 10
+        },
+        'gunicorn_file_error': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'gunicorn',
+            'filename': f'{BASE_DIR}/logs/general.log',
+            'maxBytes': 1000000,
+            'backupCount': 10
+        }
+    })
+    LOGGING_DICT['loggers'].update({
+        'gunicorn.access': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            },
+        'gunicorn.error': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            }
+    })
+
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(minutes=5)
     JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=14)
