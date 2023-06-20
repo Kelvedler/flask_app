@@ -1,3 +1,4 @@
+import logging
 from flask import Blueprint, request
 from marshmallow import ValidationError
 from sqlalchemy import select, exc
@@ -9,9 +10,12 @@ from main.views.common import person_tokens_response
 
 sign_in = Blueprint('sign-in', __name__, url_prefix='sign-in')
 
+logger = logging.getLogger(__name__)
+
 
 @sign_in.route('', methods=['POST'])
 def sign_in_view():
+    logger.info(f'log name - {__name__}')
     try:
         data = PersonSchema(only=['name', 'password']).load(request.json)
     except ValidationError as err:
