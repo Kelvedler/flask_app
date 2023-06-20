@@ -65,7 +65,7 @@ class Config:
             'handlers': ['console', 'general_file', 'error_file']
         },
         'loggers': {
-            'main': {
+            'app': {
                 'handlers': ['console', 'general_file', 'error_file'],
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
