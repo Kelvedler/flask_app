@@ -13,9 +13,7 @@ services:
     networks:
       - web_net
   nginx:
-    image: nginx:1.25.1-alpine
-    command:
-      - adduser www-data
+    image: nginx:1.25.1
     ports:
       - "80:80"
     depends_on:
