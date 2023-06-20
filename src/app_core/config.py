@@ -120,12 +120,12 @@ class ProductionConfig(Config):
     })
     LOGGING_DICT['loggers'].update({
         'gunicorn.access': {
-                'handlers': ['console', 'general_file', 'error_file'],
+                'handlers': ['gunicorn_console', 'gunicorn_file_general', 'gunicorn_file_error'],
                 'level': Config.SYSTEM_LOG_LEVEL,
                 'propagate': False
             },
         'gunicorn.error': {
-                'handlers': ['console', 'general_file', 'error_file'],
+                'handlers': ['gunicorn_console', 'gunicorn_file_general', 'gunicorn_file_error'],
                 'level': Config.SYSTEM_LOG_LEVEL,
                 'propagate': False
             }
