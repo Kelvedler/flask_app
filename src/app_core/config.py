@@ -93,7 +93,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     LOGGING_DICT = Config.LOGGING_DICT
     LOGGING_DICT['formatters']['gunicorn'] = {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %({X-Real-IP}i)s %(message)s'
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %({x-real-ip}i)s %(message)s'
     }
     LOGGING_DICT['handlers'].update({
         'gunicorn_console': {
