@@ -75,16 +75,21 @@ class Config:
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
             },
-            'wsgi': {
-                'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
-                'propagate': False
-            },
             'web_sockets': {
                 'handlers': ['console', 'general_file', 'error_file'],
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
-            }
+            },
+            'gunicorn.access': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': SYSTEM_LOG_LEVEL,
+                'propagate': False
+            },
+            'gunicorn.error': {
+                'handlers': ['console', 'general_file', 'error_file'],
+                'level': SYSTEM_LOG_LEVEL,
+                'propagate': False
+            },
         },
     }
 
