@@ -41,6 +41,11 @@ def create_app():
         assert retry_ping(elastic_client.ping)
         celery_init_app(app)
 
+        gunicorn_access = logging.getLogger('gunicorn.access')
+        gunicorn_error = logging.getLogger('gunicorn.error')
+        app.logger.addHandler(gunicorn_access)
+        app.logger.addHandler(gunicorn_error)
+
         return app
     except Exception as e:
         logger.exception(f'Failed to create app: {e}')
