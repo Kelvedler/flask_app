@@ -29,7 +29,7 @@ class Config:
 
     LOGGING_DICT = {
         'version': 1,
-        # 'disable_existing_loggers': True,
+        'disable_existing_loggers': True,
         'formatters': {
             'brief': {
                 'format': '%(asctime)s: %(levelname)s %(message)s'
