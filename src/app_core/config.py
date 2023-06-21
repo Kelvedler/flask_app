@@ -91,46 +91,6 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    LOGGING_DICT = Config.LOGGING_DICT
-    LOGGING_DICT['formatters']['gunicorn'] = {
-        'format': '[%(asctime)s] %(levelname)s: %(message)s %(s)s'
-    }
-    LOGGING_DICT['handlers'].update({
-        'gunicorn_console': {
-            'level': Config.CONSOLE_LOG_LEVEL,
-            'class': 'logging.StreamHandler',
-            'formatter': 'gunicorn'
-        },
-        'gunicorn_file_general': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'gunicorn',
-            'filename': f'{BASE_DIR}/logs/general.log',
-            'maxBytes': 1000000,
-            'backupCount': 10
-        },
-        'gunicorn_file_error': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'gunicorn',
-            'filename': f'{BASE_DIR}/logs/general.log',
-            'maxBytes': 1000000,
-            'backupCount': 10
-        }
-    })
-    LOGGING_DICT['loggers'].update({
-        'gunicorn.access': {
-                'handlers': ['gunicorn_console', 'gunicorn_file_general', 'gunicorn_file_error'],
-                'level': Config.SYSTEM_LOG_LEVEL,
-                'propagate': False
-            },
-        'gunicorn.error': {
-                'handlers': ['gunicorn_console', 'gunicorn_file_general', 'gunicorn_file_error'],
-                'level': Config.SYSTEM_LOG_LEVEL,
-                'propagate': False
-            }
-    })
-
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(minutes=5)
     JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=14)
