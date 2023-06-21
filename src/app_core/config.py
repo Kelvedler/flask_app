@@ -79,7 +79,7 @@ class Config:
                 'handlers': ['console', 'general_file', 'error_file'],
                 'level': SYSTEM_LOG_LEVEL,
                 'propagate': False
-            },
+            }
         },
     }
 
@@ -91,6 +91,34 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
+    LOGGING_DICT = Config.LOGGING_DICT
+    LOGGING_DICT['handlers'].update({
+        'gunicorn_console': {
+            'level': Config.CONSOLE_LOG_LEVEL,
+            'class': 'logging.StreamHandler'
+        },
+        'gunicorn_general_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'{BASE_DIR}/logs/general.log',
+            'maxBytes': 1000000,
+            'backupCount': 10
+        },
+        'gunicorn_error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'{BASE_DIR}/logs/error.log',
+            'maxBytes': 1000000,
+            'backupCount': 10
+        }
+    })
+    LOGGING_DICT['loggers'].update({
+        'gunicorn.access': {
+            'handlers': ['gunicorn_console', 'gunicorn_general_file', 'gunicorn_error_file'],
+            'level': Config.SYSTEM_LOG_LEVEL,
+            'propagate': False
+        }
+    })
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(minutes=5)
     JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=14)
