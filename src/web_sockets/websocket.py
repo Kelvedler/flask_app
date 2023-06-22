@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import re
 import websockets
 from sqlalchemy import select, exc
@@ -9,6 +10,8 @@ from app_core.jwt_ import jwt_access_required_from_value
 from app_core.regex import UUID
 from main.models.post import post_table
 from main.views.v1.posts.comments.multiple import POST_COMMENT_SUBSCRIPTION
+
+logger = logging.getLogger(__name__)
 
 SUCCESS_RESPONSE = 'success'
 
@@ -31,10 +34,16 @@ class Server:
         self.clients = list(filter(lambda client: client.connection != websocket, self.clients))
 
     async def connection_handler(self, websocket):
+        if websocket.path != '/ws':
+            self.remove_client(websocket)
+            return
+        print(websocket.request_headers)
+        logger.info(self.construct_log(websocket, 'Opened websocket'))
         try:
             await websocket.wait_closed()
         finally:
             self.remove_client(websocket)
+            logger.info(self.construct_log(websocket, 'Closed websocket'))
 
     async def consumer_handler(self, client, websocket):
         async for message in websocket:
@@ -60,6 +69,17 @@ class Server:
             if client.is_subscribed(event):
                 asyncio.create_task(self.send(client.connection, json.dumps(message)))
 
+    @staticmethod
+    def get_header(websocket, name):
+        headers = websocket.request_headers.get_all(name)
+        return headers[0] if headers else ''
+
+    def construct_log(self, websocket, text):
+        x_real_ip = self.get_header(websocket, 'x-real-ip')
+        user_agent = self.get_header(websocket, 'user-agent')
+        return f'{x_real_ip} - "{text} {websocket.path}" "{user_agent}"'
+
+
 
 class Client:
     MAX_SUBSCRIPTIONS = 10
@@ -81,7 +101,7 @@ class Client:
         try:
             message = json.loads(message)
             (command, body), = message.items()
-        except (json.JSONDecodeError, ValueError):
+        except (json.JSONDecodeError, AttributeError, ValueError):
             return None, None, json.dumps({'errors': ['invalid']})
 
         if command not in self.commands:
