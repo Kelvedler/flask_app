@@ -25,14 +25,23 @@ source = """
 is_parsed = false
 parsed, err = parse_regex(.message, r'^\\[?(?P<timestamp>\\d+-\\d+-\\d+ \\d+:\\d+:\\d+,\\d+): (?P<severity>\\w+\\/?\\w*)\\]? (?P<message>.*)$')
 if err == null {
-    is_parsed = true
     . |= parsed
-    . |= {
+    is_parsed = true
+
+    sub_parsed, err = parse_regex(.message, r'(?P<ip>(?:\\d{1,3}\\.){3}\\d{1,3}\\b|\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})[^"]*"(?P<message>[^\\/]*)(?P<path>[^\\\\]*)[^"]*"[^"]*"(?P<agent>[^"]*)"$')
+    if err == null {
+        . |= sub_parsed
+    } else {
+        . |= {
             "ip": "",
-            "http_method": "",
             "path": "",
-            "status_code": "",
             "agent": ""
+        }
+    }
+
+    . |= {
+            "http_method": "",
+            "status_code": "",
         }
 } else {
     parsed, err = parse_regex(.message, r'^\\[(?P<timestamp>\\d+\\/\\w+\\/\\d+:\\d+:\\d+:\\d+ \\+\\d+)\\] (?P<ip>(?:\\d{1,3}\\.){3}\\d{1,3}\\b|\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})[^"]*"(?P<http_method>GET|POST|PUT|PATCH|DELETE) (?P<path>\\/[^ ]*)[^"]*" (?P<status_code>\\d+)[^"]*"(?P<agent>[^"]*)"$')
