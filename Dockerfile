@@ -1,4 +1,4 @@
-FROM python:3.9.5
+FROM python:3.9.17-bullseye
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
@@ -16,9 +16,6 @@ COPY ./src /app
 
 RUN pip install --editable .
 
-RUN chmod +x docker-entrypoint.sh \
-update.sh server-gunicorn.sh celery-worker.sh
-
-EXPOSE 8000 8001
+RUN chmod +x docker-entrypoint.sh update.sh server-gunicorn.sh celery-worker.sh
 
 ENTRYPOINT ./docker-entrypoint.sh

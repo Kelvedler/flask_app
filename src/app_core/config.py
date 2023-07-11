@@ -27,6 +27,12 @@ class Config:
     WEBSOCKETS_PORT = os.getenv('WEBSOCKETS_PORT')
     AMQP_URL = os.getenv('AMQP_URL')
 
+
+class DevelopmentConfig(Config):
+    SECRET_KEY = 'mZq4t7w!z%C*F-JaNdRgUkXn2r5u8x/A'
+    JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(days=30)
+    JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=364)
+
     LOGGING_DICT = {
         'version': 1,
         'disable_existing_loggers': True,
@@ -40,7 +46,7 @@ class Config:
         },
         'handlers': {
             'console': {
-                'level': CONSOLE_LOG_LEVEL,
+                'level': Config.CONSOLE_LOG_LEVEL,
                 'class': 'logging.StreamHandler',
                 'formatter': 'brief'
             },
@@ -67,61 +73,77 @@ class Config:
         'loggers': {
             'app': {
                 'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
+                'level': Config.SYSTEM_LOG_LEVEL,
                 'propagate': False
             },
             'main': {
                 'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
+                'level': Config.SYSTEM_LOG_LEVEL,
                 'propagate': False
             },
             'web_sockets': {
                 'handlers': ['console', 'general_file', 'error_file'],
-                'level': SYSTEM_LOG_LEVEL,
+                'level': Config.SYSTEM_LOG_LEVEL,
                 'propagate': False
             }
         },
     }
 
 
-class DevelopmentConfig(Config):
-    SECRET_KEY = 'mZq4t7w!z%C*F-JaNdRgUkXn2r5u8x/A'
-    JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(days=30)
-    JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=364)
-
-
 class ProductionConfig(Config):
-    LOGGING_DICT = Config.LOGGING_DICT
-    LOGGING_DICT['handlers'].update({
-        'gunicorn_console': {
-            'level': Config.CONSOLE_LOG_LEVEL,
-            'class': 'logging.StreamHandler'
-        },
-        'gunicorn_general_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': f'{BASE_DIR}/logs/general.log',
-            'maxBytes': 1000000,
-            'backupCount': 10
-        },
-        'gunicorn_error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': f'{BASE_DIR}/logs/error.log',
-            'maxBytes': 1000000,
-            'backupCount': 10
-        }
-    })
-    LOGGING_DICT['loggers'].update({
-        'gunicorn.access': {
-            'handlers': ['gunicorn_console', 'gunicorn_general_file', 'gunicorn_error_file'],
-            'level': Config.SYSTEM_LOG_LEVEL,
-            'propagate': False
-        }
-    })
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_ACCESS_EXPIRATION_TIMEDELTA = timedelta(minutes=5)
     JWT_REFRESH_EXPIRATION_TIMEDELTA = timedelta(days=14)
+
+    LOGGING_DICT = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'brief': {
+                'format': '%(asctime)s: %(levelname)s %(message)s'
+            },
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'console': {
+                'level': Config.CONSOLE_LOG_LEVEL,
+                'class': 'logging.StreamHandler',
+                'formatter': 'brief'
+            },
+            'gunicorn_console': {
+                'level': Config.CONSOLE_LOG_LEVEL,
+                'class': 'logging.StreamHandler'
+            }
+        },
+        'root': {
+            'handlers': ['console']
+        },
+        'loggers': {
+            'app': {
+                'handlers': ['console'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            },
+            'main': {
+                'handlers': ['console'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+
+            },
+            'web_sockets': {
+                'handlers': ['console'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            },
+            'gunicorn.access': {
+                'handlers': ['gunicorn_console'],
+                'level': Config.SYSTEM_LOG_LEVEL,
+                'propagate': False
+            }
+        }
+    }
 
 
 _config_options = {
