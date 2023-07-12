@@ -22,41 +22,56 @@ del(.timestamp)
 type = "remap"
 inputs = [ "filter" ]
 source = """
-is_parsed = false
-parsed, err = parse_regex(.message, r'^\\[?(?P<timestamp>\\d+-\\d+-\\d+ \\d+:\\d+:\\d+,\\d+): (?P<severity>\\w+\\/?\\w*)\\]? (?P<message>.*)$')
-if err == null {
-    . |= parsed
-    is_parsed = true
+parsed, err = parse_regex(.message, r'^\\[?(?P<timestamp>\\d+[-\\/]\\w+[-\\/]\\d+[ :]\\d+:\\d+:\\d+(?:,| \\+)\\d+)[:\\]]? (?P<message>.*)$')
 
-    sub_parsed, err = parse_regex(.message, r'(?P<ip>(?:\\d{1,3}\\.){3}\\d{1,3}\\b|\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})[^"]*"(?P<message>[^\\/]*)(?P<path>[^\\\\]*)[^"]*"[^"]*"(?P<agent>[^"]*)"$')
-    if err == null {
-        . |= sub_parsed
-    } else {
-        . |= {
-            "ip": "",
-            "path": "",
-            "agent": ""
-        }
-    }
-
-    . |= {
-            "http_method": "",
-            "status_code": "",
-        }
+if err != null {
+    .timestamp = now()
 } else {
-    parsed, err = parse_regex(.message, r'^\\[(?P<timestamp>\\d+\\/\\w+\\/\\d+:\\d+:\\d+:\\d+ \\+\\d+)\\] (?P<ip>(?:\\d{1,3}\\.){3}\\d{1,3}\\b|\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4})[^"]*"(?P<http_method>GET|POST|PUT|PATCH|DELETE) (?P<path>\\/[^ ]*)[^"]*" (?P<status_code>\\d+)[^"]*"(?P<agent>[^"]*)"$')
-    if err == null {
-        is_parsed = true
-        . |= parsed
-        . |= {"message": ""}
-    }
+    . |= parsed
+    .timestamp =
+        parse_timestamp(.timestamp, format: "%F %T,%3f") ??
+        parse_timestamp(.timestamp, format: "%d/%h/%Y:%T %z") ??
+        parse_timestamp!(.timestamp, format: "%F %T %z")
 }
 
-if is_parsed == true {
-    message_parts = split!(.message, ", ", limit: 2)
-    structured = parse_key_value(message_parts[1], key_value_delimiter: ":", field_delimiter: ",") ?? {}
-    .message = message_parts[0]
-    . = merge(., structured)
+parsed, err = parse_regex(.message, r'^(?:\\[\\d+\\])? ?\\[?(?P<severity>DEBUG|INFO|WARN(?:ING)?|ERROR|CRIT(?:ICAL)?)(?:\\] |\\/| )(?P<message>.*)$')
+
+if err != null {
+    .severity = ""
+} else {
+    . |= parsed
+}
+
+parsed, err = parse_regex(.message, r'^(?P<process>MainProcess|Beat)\\] (?P<message>.*)$')
+
+if err != null {
+    .process = ""
+} else {
+    . |= parsed
+}
+
+parsed, err = parse_regex(.message, r'^(?P<ip>(?:\\d{1,3}\\.){3}\\d{1,3}\\b|\\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}) - \\"(?P<message>.*)$')
+
+if err != null {
+    .ip = ""
+    .agent = ""
+    .http_method = ""
+    .path = ""
+    .status_code = ""
+} else {
+    . |= parsed
+    parsed, err = parse_regex(.message, r'^(?P<http_method>GET|POST|PUT|PATCH|DELETE) (?P<path>\\/[^ ]*)[^"]*" (?P<status_code>\\d+)[^"]*"(?P<agent>[^"]*)"$')
+    if err == null {
+        . |= parsed
+        . |= {"message": ""}
+    } else {
+        .http_method = ""
+        .status_code = ""
+        parsed, err = parse_regex(.message, r'(?P<message>[^\\/]*)(?P<path>[^"]*)[^"]*"[^"]*"(?P<agent>[^"]*)')
+        if err == null {
+            . |= parsed
+        }
+    }
 }
 """
 
