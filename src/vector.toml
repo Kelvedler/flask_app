@@ -69,3 +69,17 @@ target = "stdout"
 
 [sinks.out.encoding]
 codec = "json"
+
+[sinks.elasticsearch]
+type = "elasticsearch"
+mode = "bulk"
+inputs = [ "remap" ]
+endpoints = [ "http://elasticsearch:9200" ]
+
+[sinks.elasticsearch.auth]
+strategy = "basic"
+user = "${ELASTICSEARCH_USERNAME}"
+password = "${ELASTICSEARCH_PASSWORD}"
+
+[sinks.elasticsearch.bulk]
+index = "web_logs"
