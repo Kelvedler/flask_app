@@ -53,6 +53,7 @@ if err == null {
     parsed, err = parse_regex(.message, r'^(?P<http_method>GET|POST|PUT|PATCH|DELETE) (?P<path>\\/[^ ]*)[^"]*" (?P<status_code>\\d+)[^"]*"(?P<agent>[^"]*)"$')
     if err == null {
         . |= parsed
+        . |= {"message": ""}
     } else {
         parsed, err = parse_regex(.message, r'(?P<message>[^\\/]*)(?P<path>[^"]*)[^"]*"[^"]*"(?P<agent>[^"]*)')
         if err == null {
