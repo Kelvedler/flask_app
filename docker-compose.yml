@@ -118,6 +118,7 @@ services:
         fi;
         echo "Setting ES auth token";
         AUTH_TOKEN=$$(sed 's/.*=//' <<<"$$(bin/elasticsearch-service-tokens create elastic/kibana auth-token)");
+        chown elasticsearch config/service_tokens
         stat -c '%U' config/service_tokens
         TOKEN_LINE=$$(grep -n '{{SERVICE_ACCOUNT_TOKEN}}' /usr/share/kibana/config/kibana.yml | cut -d ':' -f1);
         echo "Setting kibana.yml";
