@@ -15,14 +15,6 @@ from main.views import api as main_api
 BASE_DIR = Path(__file__).resolve().parent
 
 
-def retry_ping(ping, retries=3, sleep_seconds=5):
-    for _ in range(retries):
-        if ping():
-            return True
-        time.sleep(sleep_seconds)
-    return False
-
-
 def create_app():
     dictConfig(config.LOGGING_DICT)
     logger = logging.getLogger(__name__)
@@ -37,8 +29,8 @@ def create_app():
         app.register_error_handler(500, ServerInternalError().as_error_handler)
 
         engine.connect()
-        assert retry_ping(redis_client.ping)
-        assert retry_ping(elastic_client.ping)
+        assert redis_client.ping
+        assert elastic_client.ping
         celery_init_app(app)
 
         return app

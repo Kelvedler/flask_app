@@ -12,11 +12,9 @@ if [ $? -eq 0 ]
 then
   echo "${GREEN}Database migrations succeeded${NC}"
 
-  sleep 10
-
   echo  "${CYAN}Running elasticsearch migrations${NC}"
 
-  elastic-migrations --direction forwards
+  elastic-migrations --direction forwards --versions 0
 
   if [ $? -eq 0 ]
   then

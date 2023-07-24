@@ -5,10 +5,27 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - database
-      - redis
-      - elasticsearch
-      - vector
+      database:
+        condition: service_started
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      - AMQP_URL=${AMQP_URL}
+      - CONFIG=${CONFIG}
+      - CONSOLE_LOG_LEVEL=${CONSOLE_LOG_LEVEL}
+      - SYSTEM_LOG_LEVEL=${SYSTEM_LOG_LEVEL}
+      - DATABASE_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@database:5432/${POSTGRES_DB}
+      - ELASTICSEARCH_URI=${ELASTICSEARCH_URI}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - WEBSOCKETS_HOST=${WEBSOCKETS_HOST}
+      - WEBSOCKETS_PORT=${WEBSOCKETS_PORT}
+      - SECRET_KEY=${SECRET_KEY}
     networks:
       - web_net
   nginx:
@@ -24,9 +41,9 @@ services:
   database:
     image: postgres:15.2-alpine
     environment:
-      - POSTGRES_DB=local_db
-      - POSTGRES_USER=local_user
-      - POSTGRES_PASSWORD=local_pass
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASS}
     volumes:
       - pg_data_local:/var/lib/postgresql/data/
     networks:
@@ -39,9 +56,10 @@ services:
       - web_net
   elasticsearch:
     image: elasticsearch:8.7.0
+    depends_on:
+      - logging_setup
     environment:
-      - xpack.security.enabled=false
-      - ELASTIC_PASSWORD=local_pass
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -50,6 +68,12 @@ services:
         hard: -1
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
+      - elasticsearch_config:/usr/share/elasticsearch/config
+    healthcheck:
+      test: curl -u "elastic:${ELASTICSEARCH_PASSWORD}" http://127.0.0.1:9200
+      interval: 1s
+      timeout: 5s
+      retries: 120
     networks:
       - web_net
   rabbitmq:
@@ -63,15 +87,53 @@ services:
     image: timberio/vector:nightly-alpine
     environment:
       - LOG=info
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./src/vector.toml:/etc/vector/vector.toml:ro
     networks:
       - web_net
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.7.0
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - kibana_config:/usr/share/kibana/config
+      - kibana_data:/usr/share/kibana/data
+    networks:
+      - web_net
+    environment:
+      - LOGGING_VERBOSE=true
+      - XPACK_SECURITY_ENCRYPTION_KEY=${KIBANA_SECRET_KEY}
+  logging_setup:
+    image: elasticsearch:8.7.0
+    user: "0"
+    command: >
+      bash -c '
+        if [ -s config/service_tokens ]; then
+          echo "Deleting old ES auth token"
+          bin/elasticsearch-service-tokens delete elastic/kibana auth-token;
+        fi;
+        echo "Setting ES auth token";
+        AUTH_TOKEN=$$(sed 's/.*=//' <<<"$$(bin/elasticsearch-service-tokens create elastic/kibana auth-token)");
+        TOKEN_LINE=$$(grep -n '{{SERVICE_ACCOUNT_TOKEN}}' /usr/share/kibana/config/kibana.yml | cut -d ':' -f1);
+        echo "Setting kibana.yml";
+        cp /usr/share/kibana.yml /usr/share/kibana/config/kibana.yml;
+        sed -i "$${TOKEN_LINE}s|{{SERVICE_ACCOUNT_TOKEN}}|$${AUTH_TOKEN:1}|" /usr/share/kibana/config/kibana.yml;
+      '
+    volumes:
+      - ./src/kibana.yml:/usr/share/kibana.yml
+      - elasticsearch_config:/usr/share/elasticsearch/config
+      - kibana_config:/usr/share/kibana/config
 volumes:
   pg_data_local:
   redis_data:
   elasticsearch_data:
+  kibana_config:
+  kibana_data:
+  elasticsearch_config:
   rabbitmq_data_local:
   rabbitmq_log_local:
 networks:

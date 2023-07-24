@@ -5,6 +5,7 @@ __pycache__/
 .idea
 venv
 src/.env
-src/logs/*
+src/logs/
 src/celerybeat-schedule.*
 src/app_utils.egg-info
+credentials.txt
