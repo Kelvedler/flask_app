@@ -159,7 +159,13 @@ def apply_migrations(migrations_to_apply, current_migration, direction):
         raise Exception(err)
 
 
-def run(direction=DIRECTION_FORWARDS, versions=1):
+def run(direction=DIRECTION_FORWARDS, versions=1, current=False):
+    current_migration = get_current_migration_version()
+
+    if current:
+        print(current_migration)
+        return
+
     migration_filenames = get_migration_filenames()
     if not migration_filenames:
         return
@@ -169,7 +175,6 @@ def run(direction=DIRECTION_FORWARDS, versions=1):
         migrations.append(get_migration_from_filename(filename))
     ordered_migrations = order_migrations(migrations)
 
-    current_migration = get_current_migration_version()
     current_index = get_index_by_filename(ordered_migrations, current_migration) if current_migration else None
 
     migrations_to_apply = get_migrations_to_apply(ordered_migrations, current_index, direction)
