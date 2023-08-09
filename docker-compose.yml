@@ -83,17 +83,17 @@ services:
       - rabbitmq_log_local:/var/log/rabbitmq
     networks:
       - web_net
-  vector:
-    image: timberio/vector:nightly-alpine
-    environment:
-      - LOG=info
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./src/vector.toml:/etc/vector/vector.toml:ro
-    networks:
-      - web_net
+#  vector:
+#    image: timberio/vector:nightly-alpine
+#    environment:
+#      - LOG=info
+#      - ELASTICSEARCH_USERNAME=elastic
+#      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - ./src/vector.toml:/etc/vector/vector.toml:ro
+#    networks:
+#      - web_net
   kibana:
     image: docker.elastic.co/kibana/kibana:8.7.0
     depends_on:

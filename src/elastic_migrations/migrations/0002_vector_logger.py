@@ -44,16 +44,24 @@ def forwards():
     }
     settings = {
         'index.lifecycle.name': WEB_LOGS,
-        'index.lifecycle.rollover_alias': WEB_LOGS
+        'index.lifecycle.rollover_alias': WEB_LOGS,
+        'index.number_of_replicas': 0
     }
 
     policy = {
         'phases': {
             'hot': {
+                'min_age': '0ms',
                 'actions': {
                     'rollover': {
                         'max_age': '1d'
                     }
+                }
+            },
+            'cold': {
+                'min_age': '1d',
+                'actions': {
+                    'readonly': {}
                 }
             },
             'delete': {
@@ -65,14 +73,17 @@ def forwards():
         }
     }
 
+    client.indices.put_template(mappings=mapping, settings=settings, index_patterns=f'{WEB_LOGS}-*',
+                                name=WEB_LOGS)
     client.ilm.put_lifecycle(name=WEB_LOGS, policy=policy)
-    client.indices.create(index=f'{WEB_LOGS}-000001', mappings=mapping, aliases=aliases, settings=settings)
+    client.indices.create(index=f'{WEB_LOGS}-000001', aliases=aliases)
 
 
 def reverse():
     indices = list(client.indices.get(index=f'{WEB_LOGS}-*').keys())
     for i in indices:
         client.indices.delete(index=i)
+    client.indices.delete_template(name=WEB_LOGS)
     client.ilm.delete_lifecycle(name=WEB_LOGS)
 
 
