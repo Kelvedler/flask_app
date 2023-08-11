@@ -46,7 +46,7 @@ def post_to_elastic_object(post: Row):
     return {
         '_id': post_id,
         'title': post_title,
-        'title_suggest': post_title.split(),
+        'title_search_as_type': post_title,
         'text': post_dict['post__text'],
         'person_id': post_dict['person__id'],
         'person_name': post_dict['person__name']
