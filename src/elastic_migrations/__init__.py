@@ -133,6 +133,16 @@ def limit_to_versions_number(ordered_migrations, versions: int):
     return ordered_migrations[:versions]
 
 
+def get_updated_migration(migration, direction):
+    if not migration.depends_on and direction == DIRECTION_REVERSE:
+        return
+    else:
+        if direction == DIRECTION_FORWARDS:
+            return migration.filename
+        else:
+            return migration.depends_on
+
+
 def apply_migrations(migrations_to_apply, current_migration, direction):
     err = None
     updated_migration = current_migration
@@ -146,13 +156,7 @@ def apply_migrations(migrations_to_apply, current_migration, direction):
             break
         else:
             print(f'\t{migration.filename}')
-            if not migration.depends_on and direction == DIRECTION_REVERSE:
-                updated_migration = None
-            else:
-                if direction == DIRECTION_FORWARDS:
-                    updated_migration = migration.filename
-                else:
-                    updated_migration = migration.depends_on
+            updated_migration = get_updated_migration(migration, direction)
     if updated_migration != current_migration:
         actualize_migration_version(updated_migration)
     if err:

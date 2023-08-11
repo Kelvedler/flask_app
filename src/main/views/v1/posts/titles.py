@@ -18,16 +18,17 @@ def titles_view():
         return err
     results = []
     try:
-        suggests = elastic_client.search(index='posts', suggest={'title_suggestions': {
-            'text': src,
-            'completion': {
-                'field': 'title_suggest',
-                'skip_duplicates': True,
-                'fuzzy': {
-                    'fuzziness': 'auto'
-                }
+        suggests = elastic_client.search(index='posts', query={
+            'multi_match': {
+                'query': src,
+                'type': 'bool_prefix',
+                'fields': [
+                    'title_search_as_type',
+                    'title_search_as_type._2gram',
+                    'title_search_as_type._3gram'
+                ]
             }
-        }})['suggest']['title_suggestions'][0]['options']
+        }).body['hits']['hits']
     except Exception as e:
         logger.exception(e)
         return err_resp.ServerInternalError()
