@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Trigger deploy backend
         env:
-          INFRA_TOKEN: ${{ serets.INFRA_TOKEN }}
+          INFRA_TOKEN: ${{ secrets.INFRA_TOKEN }}
         run: > 
           curl 
           -XPOST 
