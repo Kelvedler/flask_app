@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deploy backend
-        run: |
+        run: > 
           curl  
           -XPOST  
           -H "Accept: application/vnd.github+json" 
