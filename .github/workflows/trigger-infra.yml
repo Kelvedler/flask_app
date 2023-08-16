@@ -19,5 +19,5 @@ jobs:
           -H "Authorization: $INFRA_TOKEN" 
           -H "X-GitHub-Api-Version: 2022-11-28" 
           https://api.github.com/repos/Kelvedler/flask_app-infra/actions/workflows/deploy.yml/dispatches
-          -d '{"ref":"deploy-backend"}'
+          -d '{"ref": "main", "inputs": {"tag": "deploy-backend", "branch": "main"}}'
 
