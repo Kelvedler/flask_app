@@ -5,7 +5,7 @@ server:
   rewriteBasePath: true
 elasticsearch:
   hosts: [ "http://elasticsearch:9200" ]
-  serviceAccountToken: {{SERVICE_ACCOUNT_TOKEN}}
+  serviceAccountToken: SERVICE_ACCOUNT_TOKEN
 xpack.security:
   authc:
     providers:
