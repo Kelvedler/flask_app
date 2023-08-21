@@ -8,8 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      CONTAINER_IMAGE: ${{ secrets.CONTAINER_IMAGE }}
     steps:
       - name: Extract branch name
         shell: bash
@@ -31,9 +29,9 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
-          tags: ${{ CONTAINER_IMAGE }}:${{ steps.extract_branch.outputs.branch }}-latest
+          tags: ${{ secrets.CONTAINER_IMAGE }}:${{ steps.extract_branch.outputs.branch }}-latest
           pull: true
-          cache-from: ${{ CONTAINER_IMAGE }}:${{ steps.extract_branch.outputs.branch }}-latest
+          cache-from: ${{ secrets.CONTAINER_IMAGE }}:${{ steps.extract_branch.outputs.branch }}-latest
           push: true
           tags:
 
