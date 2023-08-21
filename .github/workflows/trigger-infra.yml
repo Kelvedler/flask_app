@@ -33,7 +33,6 @@ jobs:
           pull: true
           cache-from: ${{ secrets.CONTAINER_IMAGE }}:${{ steps.extract_branch.outputs.branch }}-latest
           push: true
-          tags:
 
       - name: Trigger deploy
         env:
